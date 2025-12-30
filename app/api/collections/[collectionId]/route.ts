@@ -1,4 +1,5 @@
 import Collection from "@/lib/models/Collections";
+import Product from "@/lib/models/Products";
 import { connectToDB } from "@/lib/mongoDB";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
@@ -65,6 +66,11 @@ export async function DELETE(req: NextRequest, {params}: {params: Promise<{colle
         const {collectionId} = await params;
 
         await Collection.findByIdAndDelete(collectionId)
+
+        await Product.updateMany(
+            {collections: collectionId}, // finds every product whose collections have collectionId
+            {$pull: {collections: collectionId}}, // remove it fromt eh array that it was found
+        )
         return new NextResponse("Collection is deleted", {status: 200})
     } catch (err) {
         console.log("[collectionId_DELETE", err)

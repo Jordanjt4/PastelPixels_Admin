@@ -1,3 +1,5 @@
+"use client";
+
 import { CldUploadWidget } from 'next-cloudinary';
 import { Plus, Trash } from 'lucide-react';
 
@@ -7,7 +9,7 @@ import Image from 'next/image';
 // props that it's allowed to receive
 interface ImageUploadProps{
     value: string[];
-    onChange: (value: string[]) => void;
+    onChange: (url: string[]) => void;
     onRemove: (url: string) => void;
 }
 
@@ -16,9 +18,10 @@ interface ImageUploadProps{
 
 // calls onChange and onRemove defined in the parent and re-renders everything here
 
-export const ImageUpload: React.FC<ImageUploadProps> = ({onChange, onRemove, value}) => {
+export const ImageUpload: React.FC<ImageUploadProps> = ({onChange, onRemove, value = []}) => {
     const onUpload = (result: any) => {
         // call onChange to add the new image's url 
+        console.log("Cloudinary result:", result);
         onChange([...value, result.info.secure_url]);
     }
 

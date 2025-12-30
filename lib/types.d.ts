@@ -5,3 +5,18 @@ type CollectionType = {
     image: [string];
     products: ProductType[]
 }
+
+type ProductType = {
+    _id: string;
+    title: string;
+    description: string;
+    media: string[];
+    category: string;
+    collections: CollectionType[];
+    tags: string[];
+    options: string[];
+    price: number;
+    expense: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
