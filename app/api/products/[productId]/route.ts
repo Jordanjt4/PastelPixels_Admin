@@ -42,12 +42,21 @@ export const POST = async (req: NextRequest, { params }: { params: { productId: 
             return new NextResponse("Not enough data to create new product", { status: 500 });
         }
 
+        console.log("product.collections is", product.collections)
+
+        const existingIds = product.collections.map((id: any) => id.toString());
+        const newIds = collections.map((id: any) => id.toString());
+        console.log("existing Ids are", existingIds);
+        console.log("new Ids are", newIds)
+
         // filter outu old collections so we're left with only the new collections
-        const addedCollections = collections.filter((collectionId: string) => !product.collections.includes(collectionId))
-        const removedCollections = product.collections.filter((collectionId: string) => !collections.includes(collectionId))
+        const addedCollections = newIds.filter((collectionId: string) => !existingIds.includes(collectionId))
+        console.log("added Collections", addedCollections)
+        const removedCollections = existingIds.filter((collectionId: string) => !newIds.includes(collectionId))
+        console.log("removedCollections", removedCollections)
 
         // update collections
-        await Promise.all([
+        /* await Promise.all([
             // add new product id to corresponding collection products array
             ...addedCollections.map((collectionId: string) =>
                 Collection.findByIdAndUpdate(collectionId, {
@@ -61,7 +70,9 @@ export const POST = async (req: NextRequest, { params }: { params: { productId: 
                     $pull: {products: product._id}
                 })
             )
-        ]);
+        ]); */
+
+        await Promise.all( collections.map((collectionId: string) => Collection.findByIdAndUpdate(collectionId, { $addToSet: { products: product._id }, }) ) );
 
         // update product
         const updateProduct = await Product.findByIdAndUpdate(productId, {
@@ -75,8 +86,6 @@ export const POST = async (req: NextRequest, { params }: { params: { productId: 
             price,
             expense
         }, {new: true}).populate({path: "collections", model: Collection}); // prepares to return the collection data for this read
-
-        await updateProduct.save();
 
         return NextResponse.json(updateProduct, { status: 200 })
     } catch (err) {

@@ -7,42 +7,45 @@ import "@yaireo/tagify/dist/tagify.css";
 interface MultiTextProps {
   placeholder: string;
   value: string[];
-  onChange: (value: string) => void;
-  onRemove: (value: string) => void;
+  onChange: (value: string[]) => void;
 }
 
 const MultiText: React.FC<MultiTextProps> = ({
   placeholder,
   value = [],
   onChange,
-  onRemove,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const tagifyRef = useRef<any>(null); // ✅ FIX
 
   useEffect(() => {
     if (!inputRef.current) return;
 
-    const tagify = new Tagify(inputRef.current, {
+    tagifyRef.current = new Tagify(inputRef.current, {
       enforceWhitelist: false,
     });
 
-    // add tag
-    tagify.on("add", (e: any) => {
-      onChange(e.detail.data.value);
+    tagifyRef.current.on("change", () => {
+      const tags = tagifyRef.current.value.map(
+        (tag: any) => tag.value
+      );
+      onChange(tags);
     });
 
-    // remove tag
-    tagify.on("remove", (e: any) => {
-      onRemove(e.detail.data.value);
-    });
-
-    return () => tagify.destroy();
+    return () => tagifyRef.current?.destroy();
   }, []);
+
+  // keep Tagify synced when editing existing values
+  useEffect(() => {
+    if (!tagifyRef.current) return;
+
+    tagifyRef.current.removeAllTags();
+    tagifyRef.current.addTags(value);
+  }, [value]);
 
   return (
     <input
       ref={inputRef}
-      defaultValue={value.join(",")}
       placeholder={placeholder}
       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
     />

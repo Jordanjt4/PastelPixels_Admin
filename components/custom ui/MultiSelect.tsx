@@ -13,8 +13,7 @@ interface MultiSelectProps {
   placeholder: string;
   collections: CollectionType[];
   value: string[];
-  onChange: (id: string) => void;
-  onRemove: (id: string) => void;
+  onChange: (ids: string[]) => void;
 }
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -22,46 +21,34 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   collections,
   value,
   onChange,
-  onRemove,
 }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const tagifyRef = useRef<any>(null);
   const syncing = useRef(false);
-  const prevValues = useRef<string[]>([]);
 
+  // init Tagify ONCE
   useEffect(() => {
-    if (!inputRef.current || tagifyRef.current) return;
+    if (!inputRef.current) return;
 
     tagifyRef.current = new Tagify(inputRef.current, {
       enforceWhitelist: true,
       tagTextProp: "label",
       dropdown: {
         enabled: 1,
-        closeOnSelect: true,
+        closeOnSelect: false,
         searchKeys: ["label"],
         mapValueTo: "label",
       },
     });
 
-    tagifyRef.current.on("add", (e: any) => {
+    tagifyRef.current.on("change", () => {
       if (syncing.current) return;
 
-      const id = String(e.detail?.data?.value ?? "");
-      if (id && !value.includes(id)) onChange(id);
-    });
-
-    tagifyRef.current.on("remove", () => {
-      if (syncing.current) return;
-
-      const current = tagifyRef.current.value.map(
+      const ids = tagifyRef.current.value.map(
         (t: any) => String(t.value)
       );
 
-      const removed = prevValues.current.find(
-        (id) => !current.includes(id)
-      );
-
-      if (removed) onRemove(removed);
+      onChange(ids);
     });
 
     return () => {
@@ -70,6 +57,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
     };
   }, []);
 
+  // update whitelist
   useEffect(() => {
     if (!tagifyRef.current) return;
 
@@ -79,8 +67,13 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
     }));
   }, [collections]);
 
+  // sync RHF → Tagify
   useEffect(() => {
     if (!tagifyRef.current) return;
+
+    const current = tagifyRef.current.value.map((t: any) => t.value);
+
+    if (JSON.stringify(current) === JSON.stringify(value)) return;
 
     syncing.current = true;
 
@@ -97,10 +90,8 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
       })
       .filter(Boolean);
 
-    if (tags.length) tagifyRef.current.addTags(tags);
-
+    tagifyRef.current.addTags(tags);
     syncing.current = false;
-    prevValues.current = value;
   }, [value, collections]);
 
   return (

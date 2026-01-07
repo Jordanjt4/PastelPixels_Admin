@@ -9,7 +9,7 @@ import Image from 'next/image';
 // props that it's allowed to receive
 interface ImageUploadProps{
     value: string[];
-    onChange: (url: string[]) => void;
+    onChange: (url: string) => void;
     onRemove: (url: string) => void;
 }
 
@@ -22,7 +22,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({onChange, onRemove, val
     const onUpload = (result: any) => {
         // call onChange to add the new image's url 
         console.log("Cloudinary result:", result);
-        onChange([...value, result.info.secure_url]);
+        onChange(result.info.secure_url);
     }
 
     return (

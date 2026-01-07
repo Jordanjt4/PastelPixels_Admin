@@ -2,6 +2,7 @@ import Collection from "@/lib/models/Collections";
 import Product from "@/lib/models/Products";
 import { connectToDB } from "@/lib/mongoDB";
 import { auth } from "@clerk/nextjs/server";
+import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest, {params}: {params: Promise<{collectionId: string}>}) {
@@ -9,7 +10,7 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{collecti
         await connectToDB()
         const {collectionId} = await params;
 
-        const collection = await Collection.findById(collectionId)
+        const collection = await Collection.findById(collectionId).populate({path: "products", model: Product})
 
         if (!collection) {
             return new NextResponse(JSON.stringify({message: "Collection not found"}), {status: 404})
@@ -77,3 +78,5 @@ export async function DELETE(req: NextRequest, {params}: {params: Promise<{colle
         return new NextResponse("InternalServerError", {status: 500})
     }
 }
+
+export const dynamic = "force-dynamic";
