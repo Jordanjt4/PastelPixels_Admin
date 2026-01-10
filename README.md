@@ -23,3 +23,9 @@ TypeScript
 npm run dev -- --experimental-https
 ```
 
+### Screenshots
+![Collections Page](./public/screenshots/1.png)
+
+![Products Edit Page](./public/screenshots/2.png)
+
+![Orders Page](./public/screenshots/3.png)
